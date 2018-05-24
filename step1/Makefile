@@ -1,4 +1,3 @@
-# Oops
 IFLAGS += -I/usr/include
 
 LFLAGS += -L/usr/lib/x86_64-linux-gnu
@@ -8,8 +7,8 @@ LIBS += -ldeal.ii
 CXXFLAGS += -Wall
 CXXFLAGS += -O0 -ggdb
 
-progname : objects
-	g++ $(CXXFLAGS) -o progname objects $(LFLAGS) $(LIBS)
+step1exe : step1.o
+	g++ $(CXXFLAGS) $(LFLAGS) $(LIBS) step1.o -o step1exe 
 
-object : source
-	g++ $(CXXFLAGS) $(IFLAGS) -c -o object source 
+step1 : step1.cpp
+	g++ $(CXXFLAGS) $(IFLAGS) -o step1.cpp -c step1
