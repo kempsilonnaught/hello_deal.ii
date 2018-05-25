@@ -2,7 +2,7 @@
 #include <deal.II/grid/tria_accessor.h>
 #include <deal.II/grid/tria_iterator.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/tria_boundary.h>
+#include <deal.II/grid/tria_boundary_lib.h>
 
 #include <deal.II/dofs/dof_handler.h>
 
@@ -37,7 +37,7 @@ void make_grid(Triangulation<2> &triangulation){ //Triangulation memory address?
 			for(unsigned int v = 0; v < GeometryInfo<2>::vertices_per_cell; ++v){
 				const double distance_from_center = center.distance(cell->vertex(v));
 
-				if(std::fabs(distance_from_center - inner_radius < 1e-10){
+				if(std::fabs(distance_from_center - inner_radius < 1e-10)){
 					cell->set_refine_flag();
 					break;
 				}
@@ -47,16 +47,40 @@ void make_grid(Triangulation<2> &triangulation){ //Triangulation memory address?
 }
 
 
-void distribute_dofs(DofHandler<2> &dof_handler){
+void distribute_dofs(DoFHandler<2> &dof_handler){
 	static const FE_Q<2> finite_element(1);
-	dof_handler.distribut_dofs(finites_element);
-	CompressedSparsityPatter compressed_sparsity_pattern(dof_handler.n_dofs(), dof_handler.ndofs());
+	dof_handler.distribute_dofs(finite_element);
+	CompressedSparsityPattern compressed_sparsity_pattern(dof_handler.n_dofs(), dof_handler.n_dofs());
 	
-	DoFTools::make_sparsity_pattern(dof_hanhdler, compressed_sparsity_pattern);
+	DoFTools::make_sparsity_pattern(dof_handler, compressed_sparsity_pattern);
 
 	SparsityPattern sparsity_pattern;
 	sparsity_pattern.copy_from(compressed_sparsity_pattern);
 
 	std::ofstream out ("sparsity_pattern.1");
 	sparsity_pattern.print_gnuplot(out);		
+}
+
+void renumber_dofs(DoFHandler<2> &dof_handler){
+	DoFRenumbering::Cuthill_McKee(dof_handler);
+
+	CompressedSparsityPattern compressed_sparsity_pattern(dof_handler.n_dofs(), dof_handler.n_dofs());
+
+	DoFTools::make_sparsity_pattern(dof_handler, compressed_sparsity_pattern);
+
+	SparsityPattern sparsity_pattern;
+	sparsity_pattern.copy_from(compressed_sparsity_pattern);
+
+	std::ofstream out("sparsity_pattern.2");
+	sparsity_pattern.print_gnuplot(out);
+}
+
+int main(){
+	Triangulation<2> triangulation;
+	make_grid(triangulation);
+
+	DoFHandler<2> dof_handler(triangulation);
+
+	distribute_dofs(dof_handler);
+	renumber_dofs(dof_handler);
 }
